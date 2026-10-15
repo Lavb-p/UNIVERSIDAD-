@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://cupcs0cyv5xk7"]
+
+[ext_resource type="Texture2D" uid="uid://dn5s0tb1enjbp" path="res://assets/npc/npc.png" id="1_nh2m4"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_abqhh"]
+atlas = ExtResource("1_nh2m4")
+region = Rect2(0, 0, 66, 77)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rv78h"]
+atlas = ExtResource("1_nh2m4")
+region = Rect2(66, 0, 66, 77)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7n8xq"]
+atlas = ExtResource("1_nh2m4")
+region = Rect2(132, 0, 66, 77)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4wlns"]
+atlas = ExtResource("1_nh2m4")
+region = Rect2(198, 0, 66, 77)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_5aq51"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_abqhh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rv78h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7n8xq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4wlns")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_iupvx"]
+radius = 22.0
+height = 76.0
+
+[node name="NPC" type="Area2D" unique_id=106070666]
+scale = Vector2(0.7, 0.7)
+collision_layer = 0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1215978376]
+sprite_frames = SubResource("SpriteFrames_5aq51")
+animation = &"idle"
+frame = 1
+frame_progress = 0.7557339
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1329018263]
+position = Vector2(-3, 4)
+shape = SubResource("CapsuleShape2D_iupvx")

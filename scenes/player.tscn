@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://de843tvbw3dn4"]
+
+[ext_resource type="Script" uid="uid://fs7jejdxbd4b" path="res://scripts/player.gd" id="1_g2els"]
+[ext_resource type="Texture2D" uid="uid://dpfd8otqqo6rv" path="res://assets/characters/character.png" id="2_dqkch"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g2els"]
+atlas = ExtResource("2_dqkch")
+region = Rect2(0, 0, 61, 77)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ci2qi"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g2els")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_u8vuu"]
+radius = 16.0
+height = 56.0
+
+[node name="player" type="CharacterBody2D" unique_id=1192074681 groups=["player"]]
+collision_mask = 2
+script = ExtResource("1_g2els")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2042871728]
+position = Vector2(0, -4.7683716e-07)
+scale = Vector2(0.7, 0.7)
+sprite_frames = SubResource("SpriteFrames_ci2qi")
+animation = &"idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=149794721]
+shape = SubResource("CapsuleShape2D_u8vuu")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=2029072687]
