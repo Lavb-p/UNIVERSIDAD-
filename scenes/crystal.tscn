@@ -19,3 +19,4 @@ shape = SubResource("CircleShape2D_iupvx")
 debug_color = Color(0.9966337, 0, 0.19181937, 0.41960785)
 
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

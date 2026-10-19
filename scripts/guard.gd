@@ -19,6 +19,9 @@ enum State {
 @export var idle_duration: float = 1.0
 @export var repath_distance: float = 8.0
 
+## Vida del guardia. Cada golpe del jugador quita 10.
+@export var max_health: int = 30
+
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var detection_area: Area2D = $DetectionArea
 @onready var attack_area: Area2D = $AttackArea
@@ -40,8 +43,15 @@ var attack_timer: float = 0.0
 var facing_direction: String = "down"
 var navigation_ready: bool = false
 
+var health: int = 0
+var is_dead: bool = false
+
 
 func _ready() -> void:
+	# El jugador busca a los guardias por este grupo al atacar.
+	add_to_group("guards")
+	health = max_health
+
 	home_position = global_position
 
 	# Guardamos las posiciones globales de patrullaje.
@@ -141,6 +151,40 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	update_animation()
+
+
+func take_damage(amount: int) -> void:
+	if is_dead:
+		return
+
+	health = maxi(health - amount, 0)
+	print("Guardia recibió daño. Vida: ", health)
+
+	if health == 0:
+		die()
+		return
+
+	sprite.modulate = Color(1.0, 0.4, 0.4)
+	var tween := create_tween()
+	tween.tween_property(sprite, "modulate", Color.WHITE, 0.2)
+
+
+func die() -> void:
+	is_dead = true
+	player = null
+	velocity = Vector2.ZERO
+
+	# Deja de pensar, de detectar y de bloquear el paso.
+	set_physics_process(false)
+	detection_area.set_deferred("monitoring", false)
+	attack_area.set_deferred("monitoring", false)
+	$CollisionShape2D.set_deferred("disabled", true)
+
+	print("Guardia derrotado")
+
+	var tween := create_tween()
+	tween.tween_property(sprite, "modulate", Color(1, 1, 1, 0), 0.5)
+	tween.tween_callback(queue_free)
 
 
 func process_idle(delta: float) -> void:

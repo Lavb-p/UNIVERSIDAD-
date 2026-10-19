@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cupcs0cyv5xk7"]
 
 [ext_resource type="Texture2D" uid="uid://dn5s0tb1enjbp" path="res://assets/npc/npc.png" id="1_nh2m4"]
+[ext_resource type="Script" path="res://scripts/npc.gd" id="2_npc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_abqhh"]
 atlas = ExtResource("1_nh2m4")
@@ -38,13 +39,13 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_iupvx"]
-radius = 22.0
-height = 76.0
+[sub_resource type="CircleShape2D" id="CircleShape2D_npc"]
+radius = 80.0
 
 [node name="NPC" type="Area2D" unique_id=106070666]
 scale = Vector2(0.7, 0.7)
 collision_layer = 0
+script = ExtResource("2_npc")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1215978376]
 sprite_frames = SubResource("SpriteFrames_5aq51")
@@ -54,4 +55,18 @@ frame_progress = 0.7557339
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1329018263]
 position = Vector2(-3, 4)
-shape = SubResource("CapsuleShape2D_iupvx")
+shape = SubResource("CircleShape2D_npc")
+
+[node name="HintLabel" type="Label" parent="." unique_id=1930421077]
+offset_left = -90.0
+offset_top = -92.0
+offset_right = 90.0
+offset_bottom = -58.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 26
+text = "[E] Hablar"
+horizontal_alignment = 1
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_exited" from="." to="." method="_on_body_exited"]

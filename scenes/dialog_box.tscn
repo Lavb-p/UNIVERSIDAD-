@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/dialog_box.gd" id="1_dialog"]
+[ext_resource type="Texture2D" uid="uid://6gvtuvvcwptw" path="res://assets/ui/47_panel_dialogo.png" id="2_panel"]
+
+[node name="DialogBox" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_dialog")
+
+[node name="Panel" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -341.5
+offset_top = -149.0
+offset_right = 341.5
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("2_panel")
+expand_mode = 1
+
+[node name="NameLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 10.0
+offset_right = 664.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.55, 0.25, 0.05, 1)
+theme_override_font_sizes/font_size = 18
+text = "Anciano"
+
+[node name="TextLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 34.0
+offset_right = 664.0
+offset_bottom = 122.0
+theme_override_colors/font_color = Color(0.24, 0.13, 0.04, 1)
+theme_override_font_sizes/font_size = 22
+text = "Texto de ejemplo"
+autowrap_mode = 3
