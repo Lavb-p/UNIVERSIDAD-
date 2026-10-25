@@ -6,9 +6,13 @@ enum MissionState {
 	COMPLETED
 }
 
-var mission_state: MissionState = MissionState.NOT_STARTED
+var mission_state: int = MissionState.NOT_STARTED
 var crystals_collected: int = 0
 var total_crystals: int = 0
+var pause_layer: CanvasLayer
+var _pause_backdrop: ColorRect
+var pause_panel: PanelContainer
+var save_status: Label
 
 ## Margen que se le suma a las paredes al generar la malla de navegación.
 ## Debe ser >= a la mitad del tamaño del guardia (su cápsula mide ~29 x 44 px
@@ -49,7 +53,9 @@ func _ready() -> void:
 	hud.update_health(player.health, player.max_health)
 
 	_update_hud()
+	_build_pause_menu()
 	setup_navigation()
+	_restore_pending_save()
 
 
 # ---------------------------------------------------------------------------
@@ -86,6 +92,7 @@ func _on_npc_interacted() -> void:
 	# La misión comienza cuando termina la primera conversación.
 	if mission_state == MissionState.NOT_STARTED:
 		start_mission()
+		_save_progress()
 
 
 func start_mission() -> void:
@@ -102,6 +109,8 @@ func start_mission() -> void:
 func complete_mission() -> void:
 	mission_state = MissionState.COMPLETED
 	_update_hud()
+	AudioManager.play_sfx("complete")
+	_save_progress()
 
 	dialog_box.show_message(
 		"¡Misión cumplida! Recuperaste todos los cristales. Vuelve con el anciano.",
@@ -121,8 +130,10 @@ func _on_crystal_touched(crystal: Area2D) -> void:
 		return
 
 	crystal.collect()
+	AudioManager.play_sfx("pickup")
 	crystals_collected += 1
 	_update_hud()
+	_save_progress()
 
 	if crystals_collected >= total_crystals:
 		complete_mission()
@@ -157,6 +168,10 @@ func _update_hud() -> void:
 # Jugador y diálogo
 # ---------------------------------------------------------------------------
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause") and not dialog_box.is_dialog_active:
+		_toggle_pause_menu()
+
 func _on_dialog_started() -> void:
 	player.input_enabled = false
 
@@ -173,6 +188,98 @@ func _on_player_died() -> void:
 
 	await get_tree().create_timer(2.5).timeout
 	get_tree().reload_current_scene()
+
+
+
+
+func _build_pause_menu() -> void:
+	pause_layer = CanvasLayer.new()
+	pause_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(pause_layer)
+	var pause_button := Button.new()
+	pause_button.text = "Ⅱ  MENÚ"
+	pause_button.position = Vector2(20, 82)
+	pause_button.custom_minimum_size = Vector2(150, 44)
+	pause_button.pressed.connect(_toggle_pause_menu)
+	pause_layer.add_child(pause_button)
+	var backdrop := ColorRect.new()
+	backdrop.color = Color(0.015, 0.025, 0.07, 0.78)
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pause_layer.add_child(backdrop)
+	pause_panel = PanelContainer.new()
+	pause_panel.set_anchors_preset(Control.PRESET_CENTER)
+	pause_panel.position = Vector2(-180, -190)
+	pause_panel.size = Vector2(360, 380)
+	pause_layer.add_child(pause_panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	pause_panel.add_child(box)
+	var title := Label.new()
+	title.text = "PARTIDA"; title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28); box.add_child(title)
+	save_status = Label.new(); save_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; box.add_child(save_status)
+	_pause_button(box, "GUARDAR PARTIDA", _save_from_menu)
+	_pause_button(box, "CONTINUAR", _toggle_pause_menu)
+	_pause_button(box, "VOLVER AL MENÚ", _return_to_menu)
+	backdrop.gui_input.connect(_on_pause_backdrop_input)
+	pause_panel.visible = false
+	backdrop.visible = false
+	_pause_backdrop = backdrop
+
+func _pause_button(parent: VBoxContainer, caption: String, action: Callable) -> void:
+	var button := Button.new(); button.text = caption; button.custom_minimum_size = Vector2(300, 54); button.pressed.connect(action); parent.add_child(button)
+
+func _on_pause_backdrop_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		_toggle_pause_menu()
+
+func _toggle_pause_menu() -> void:
+	var show_menu := not pause_panel.visible
+	pause_panel.visible = show_menu
+	_pause_backdrop.visible = show_menu
+	get_tree().paused = show_menu
+	pause_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	if show_menu: save_status.text = "Puedes guardar tu progreso aquí"
+
+func _save_from_menu() -> void:
+	var ok := _save_progress()
+	save_status.text = "Partida guardada" if ok else "No se pudo guardar"
+
+func _return_to_menu() -> void:
+	get_tree().paused = false
+	SaveManager.pending_save = {}
+	get_tree().change_scene_to_file("res://scenes/menu.tscn")
+
+func _save_progress() -> bool:
+	var remaining: Array[String] = []
+	for crystal in $crystals.get_children():
+		if not crystal.was_collected:
+			remaining.append(str(crystal.name))
+	var data := {
+		"player_position": [player.global_position.x, player.global_position.y],
+		"health": player.health,
+		"crystals_collected": crystals_collected,
+		"mission_state": int(mission_state),
+		"remaining_crystals": remaining
+	}
+	return SaveManager.save_game(data)
+
+func _restore_pending_save() -> void:
+	var data: Dictionary = SaveManager.pending_save
+	SaveManager.pending_save = {}
+	if data.is_empty(): return
+	var pos = data.get("player_position", [])
+	if pos is Array and pos.size() == 2: player.global_position = Vector2(float(pos[0]), float(pos[1]))
+	player.health = clampi(int(data.get("health", player.max_health)), 0, player.max_health)
+	player.health_changed.emit(player.health, player.max_health)
+	mission_state = clampi(int(data.get("mission_state", 0)), 0, MissionState.COMPLETED)
+	crystals_collected = clampi(int(data.get("crystals_collected", 0)), 0, total_crystals)
+	var remaining: Array = data.get("remaining_crystals", [])
+	for crystal in $crystals.get_children():
+		if not remaining.has(crystal.name): crystal.queue_free()
+	_update_hud()
+	await get_tree().process_frame
+	_update_hud()
 
 
 # ---------------------------------------------------------------------------

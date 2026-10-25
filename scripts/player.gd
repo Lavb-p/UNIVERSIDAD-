@@ -18,6 +18,7 @@ var is_dead: bool = false
 var input_enabled: bool = true
 
 var attack_timer: float = 0.0
+var footstep_timer: float = 0.0
 var _attack_fx: float = -1.0  # progreso del efecto visual (0 a 1), -1 = oculto
 
 func _ready() -> void:
@@ -41,6 +42,13 @@ func _physics_process(delta: float) -> void:
 
 	velocity = direction * speed
 	move_and_slide()
+	if velocity.length() > 10.0:
+		footstep_timer -= delta
+		if footstep_timer <= 0.0:
+			AudioManager.play_sfx("step")
+			footstep_timer = 0.34
+	else:
+		footstep_timer = 0.0
 
 # Llega tanto de la tecla (Espacio) como del botón ATACAR del joystick.
 func _unhandled_input(event: InputEvent) -> void:
@@ -68,11 +76,13 @@ func take_damage(amount: int) -> void:
 		return
 
 	health = maxi(health - amount, 0)
+	AudioManager.play_sfx("hit")
 	health_changed.emit(health, max_health)
 	_flash_damage()
 
 	if health == 0:
 		is_dead = true
+		AudioManager.play_sfx("death")
 		died.emit()
 
 func _flash_damage() -> void:

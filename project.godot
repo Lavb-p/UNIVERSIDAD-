@@ -11,9 +11,14 @@ config_version=5
 [application]
 
 config/name="Guardianes del cristal"
-run/main_scene="uid://bs3r2730ibpcy"
+run/main_scene="res://scenes/menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+SaveManager="*res://scripts/save_manager.gd"
+AudioManager="*res://scripts/audio_manager.gd"
 
 [display]
 
